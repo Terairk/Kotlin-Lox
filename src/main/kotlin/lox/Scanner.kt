@@ -1,5 +1,7 @@
 package org.terairk.lox
 
+import org.terairk.lox.Token
+import org.terairk.lox.TokenType
 import org.terairk.lox.TokenType.*
 
 class Scanner(private val source: String) {
