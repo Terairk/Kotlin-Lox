@@ -1,6 +1,6 @@
 package org.terairk.lox
 
-import org.terairk.lox.Token
+import lox.AstPrinter
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.nio.charset.Charset
@@ -10,6 +10,8 @@ import java.nio.file.Paths
 import kotlin.system.exitProcess
 
 var hadError = false
+var hadRuntimeError = false
+private val interpreter = Interpreter()
 
 fun main(args: Array<String>) {
     when (args.size) {
@@ -27,6 +29,7 @@ fun runFile(path : String) {
     run(String(bytes, Charset.defaultCharset()))
 
     if (hadError) exitProcess(65)
+    if (hadRuntimeError) exitProcess(70)
 }
 
 fun runPrompt() {
@@ -45,9 +48,13 @@ fun run(source: String) {
     val scanner = Scanner(source)
     val tokens = scanner.scanTokens()
 
-    for (token: Token in tokens) {
-        println(token)
-    }
+    val parser = Parser(tokens)
+    val statements = parser.parse()
+
+    if (hadError) return
+
+    interpreter.interpret(statements)
+
 }
 
 fun error(line: Int, message: String) {
@@ -57,4 +64,17 @@ fun error(line: Int, message: String) {
 fun report(line: Int, where: String, message: String) {
     System.err.println("[line $line] Error $where: $message")
     hadError = true
+}
+
+fun error(token: Token, message: String) {
+    if (token.type == TokenType.EOF) {
+        report(token.line, " at end", message)
+    } else {
+        report(token.line, " at '${token.lexeme}'", message)
+    }
+}
+
+fun runtimeError(error: RuntimeError) {
+    System.err.println("${error.message}\n[line ${error.token.line}]")
+    hadRuntimeError = true
 }

@@ -1,7 +1,5 @@
 package org.terairk.lox
 
-import org.terairk.lox.Token
-import org.terairk.lox.TokenType
 import org.terairk.lox.TokenType.*
 
 class Scanner(private val source: String) {
@@ -173,7 +171,7 @@ class Scanner(private val source: String) {
 
     private fun addToken(type: TokenType, literal: Any?) {
         val text = source.substring(start, current)
-        tokens.add(Token(type,text, literal, line))
+        tokens.add(Token(type, text, literal, line))
     }
 
     private fun peek(): Char {
