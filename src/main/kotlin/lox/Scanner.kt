@@ -9,24 +9,25 @@ class Scanner(private val source: String) {
     private var line = 1
     private var nesting = 0
 
-    private val keywords = hashMapOf(
-        "and" to AND,
-        "class" to CLASS,
-        "else" to ELSE,
-        "false" to FALSE,
-        "for" to FOR,
-        "fun" to FUN,
-        "if" to IF,
-        "nil" to NIL,
-        "or" to OR,
-        "print" to PRINT,
-        "return" to RETURN,
-        "super" to SUPER,
-        "this" to THIS,
-        "true" to TRUE,
-        "var" to VAR,
-        "while" to WHILE,
-    )
+    private val keywords =
+        hashMapOf(
+            "and" to AND,
+            "class" to CLASS,
+            "else" to ELSE,
+            "false" to FALSE,
+            "for" to FOR,
+            "fun" to FUN,
+            "if" to IF,
+            "nil" to NIL,
+            "or" to OR,
+            "print" to PRINT,
+            "return" to RETURN,
+            "super" to SUPER,
+            "this" to THIS,
+            "true" to TRUE,
+            "var" to VAR,
+            "while" to WHILE,
+        )
 
     fun scanTokens(): List<Token> {
         while (!isAtEnd()) {
@@ -94,14 +95,13 @@ class Scanner(private val source: String) {
                 }
             }
             // ignore whitespace
-            ' ', '\r', '\t' ->  {} // intentionally doing nothing using empty block
+            ' ', '\r', '\t' -> {} // intentionally doing nothing using empty block
             '\n' -> {
                 line++
             }
 
             '"' -> string()
             in '0'..'9' -> number()
-
 
             else -> {
                 // need to stick the number parsing in the default case due to no function
@@ -111,11 +111,9 @@ class Scanner(private val source: String) {
 
                 when {
                     c.isAlpha() -> identifier()
-                    else        -> error(line, "Unexpected character.")
+                    else -> error(line, "Unexpected character.")
                 }
-
             }
-
         }
     }
 
@@ -127,8 +125,6 @@ class Scanner(private val source: String) {
         addToken(type)
     }
 
-
-
     private fun Char.isDigit() = this in '0'..'9'
 
     private fun number() {
@@ -139,14 +135,11 @@ class Scanner(private val source: String) {
             // Consume the "."
             advance()
 
-
             while (peek().isDigit()) advance()
-
         }
 
         addToken(NUMBER, source.substring(start, current).toDouble())
     }
-
 
     private fun match(expected: Char): Boolean {
         if (isAtEnd()) return false
@@ -169,7 +162,10 @@ class Scanner(private val source: String) {
         addToken(type, null)
     }
 
-    private fun addToken(type: TokenType, literal: Any?) {
+    private fun addToken(
+        type: TokenType,
+        literal: Any?,
+    ) {
         val text = source.substring(start, current)
         tokens.add(Token(type, text, literal, line))
     }
@@ -182,7 +178,7 @@ class Scanner(private val source: String) {
 
     private fun peekNext(): Char {
         if (current + 1 >= source.length) return '\u0000'
-        return source[current+1]
+        return source[current + 1]
     }
 
     private fun Char.isAlpha(): Boolean {
@@ -210,4 +206,3 @@ class Scanner(private val source: String) {
         addToken(STRING, value)
     }
 }
-

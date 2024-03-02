@@ -4,15 +4,28 @@ import org.terairk.lox.Token
 
 abstract class Expr {
   interface Visitor<T> {
+    fun visitAssignExpr(expr: Assign): T
     fun visitBinaryExpr(expr: Binary): T
+    fun visitCallExpr(expr: Call): T
     fun visitGroupingExpr(expr: Grouping): T
     fun visitLiteralExpr(expr: Literal): T
+    fun visitLogicalExpr(expr: Logical): T
     fun visitUnaryExpr(expr: Unary): T
     fun visitVariableExpr(expr: Variable): T
+  }
+  class Assign (val name: Token, val value: Expr): Expr() {
+    override fun <T> accept(visitor: Visitor<T>): T {
+      return visitor.visitAssignExpr(this)
+    }
   }
   class Binary (val left: Expr, val operator: Token, val right: Expr): Expr() {
     override fun <T> accept(visitor: Visitor<T>): T {
       return visitor.visitBinaryExpr(this)
+    }
+  }
+  class Call (val callee: Expr, val paren: Token, val arguments: List<Expr>): Expr() {
+    override fun <T> accept(visitor: Visitor<T>): T {
+      return visitor.visitCallExpr(this)
     }
   }
   class Grouping (val expression: Expr): Expr() {
@@ -23,6 +36,11 @@ abstract class Expr {
   class Literal (val value: Any?): Expr() {
     override fun <T> accept(visitor: Visitor<T>): T {
       return visitor.visitLiteralExpr(this)
+    }
+  }
+  class Logical (val left: Expr, val operator: Token, val right: Expr): Expr() {
+    override fun <T> accept(visitor: Visitor<T>): T {
+      return visitor.visitLogicalExpr(this)
     }
   }
   class Unary (val operator: Token, val right: Expr): Expr() {

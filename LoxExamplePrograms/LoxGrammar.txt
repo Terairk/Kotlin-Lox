@@ -13,26 +13,49 @@ operator       → "==" | "!=" | "<" | "<=" | ">" | ">="
 // the above are just ideas for the grammar, the actual grammar is as follows:
 
 
-expression     → equality ;
+expression     → assignment ;
+
+assignment     → IDENTIFIER "=" assignment
+               | logic_or ;
+logic_or       → logic_and ( "or" logic_and )* ;
+logic_and      → equality ( "and" equality )* ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
-               | primary ;
+               | call ;
+call           → primary ( "(" arguments? ")" )* ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
-               | "(" expression ")" ;
+               | "(" expression ")" | IDENTIFIER;
 
 
 // higher level grammar
 program        → declaration* EOF ;
 
 declaration    → varDecl
+               | funDecl
                | statement ;
 
+funDecl        → "fun" function ;
+function       → IDENTIFIER "(" parameters? ")" block ;
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 statement      → exprStmt
-               | printStmt ;
+               | ifStmt
+               | forStmt
+               | printStmt
+               | whileStmt
+               | block ;
 
+
+forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+                           expression? ";"
+                           expression? ")" statement ;
+whileStmt      → "while" "(" expression ")" statement ;
+ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
+block          → "{" declaration* "}"
 exprStmt       → expression ";" ;
 printStmt      → "print" expression ";" ;
+
+parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+arguments      → expression ( "," expression )* ;

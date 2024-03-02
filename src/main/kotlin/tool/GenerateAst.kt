@@ -13,17 +13,24 @@ fun main(args: Array<String>) {
     // my own notes, seems this AST builder could be done using kotlin's
     // custom DSL syntax, I might try to do this later on
     defineAst(outputDir, "Expr", listOf(
+        "Assign   ; val name: Token, val value: Expr",
         "Binary   ; val left: Expr, val operator: Token, val right: Expr",
+        "Call     ; val callee: Expr, val paren: Token, val arguments: List<Expr>",
         "Grouping ; val expression: Expr",
         "Literal  ; val value: Any?",
+        "Logical  ; val left: Expr, val operator: Token, val right: Expr",
         "Unary    ; val operator: Token, val right: Expr",
-        "Variable ; val name: Token"
+        "Variable ; val name: Token",
     ))
 
     defineAst(outputDir, "Stmt", listOf(
+        "Block       ; val statements: List<Stmt>",
         "Expression  ; val expression: Expr",
+        "Function    ; val name: Token, val params: List<Token>, val body: List<Stmt>",
         "Print       ; val expression: Expr",
         "Var         ; val name: Token, val initializer: Expr?",
+        "If          ; val condition: Expr, val thenBranch: Stmt, val elseBranch: Stmt?",
+        "While       ; val condition: Expr, val body: Stmt",
     ))
 
 }
