@@ -5,6 +5,7 @@ import org.terairk.lox.Token
 abstract class Stmt {
   interface Visitor<T> {
     fun visitBlockStmt(stmt: Block): T
+    fun visitClassStmt(stmt: Class): T
     fun visitExpressionStmt(stmt: Expression): T
     fun visitFunctionStmt(stmt: Function): T
     fun visitPrintStmt(stmt: Print): T
@@ -16,6 +17,11 @@ abstract class Stmt {
   class Block (val statements: List<Stmt>): Stmt() {
     override fun <T> accept(visitor: Visitor<T>): T {
       return visitor.visitBlockStmt(this)
+    }
+  }
+  class Class (val name: Token, val methods: List<Stmt.Function>): Stmt() {
+    override fun <T> accept(visitor: Visitor<T>): T {
+      return visitor.visitClassStmt(this)
     }
   }
   class Expression (val expression: Expr): Stmt() {

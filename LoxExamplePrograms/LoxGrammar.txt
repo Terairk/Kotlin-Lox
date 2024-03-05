@@ -33,13 +33,15 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
 // higher level grammar
 program        → declaration* EOF ;
 
-declaration    → varDecl
+declaration    → classDecl
+               | varDecl
                | funDecl
                | statement ;
 
+classDecl      → "class" IDENTIFIER "{" function* "}" ;
 funDecl        → "fun" function ;
-function       → IDENTIFIER "(" parameters? ")" block ;
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+
 statement      → exprStmt
                | ifStmt
                | forStmt
@@ -58,5 +60,6 @@ block          → "{" declaration* "}"
 exprStmt       → expression ";" ;
 printStmt      → "print" expression ";" ;
 
+function       → IDENTIFIER "(" parameters? ")" block ;
 parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
 arguments      → expression ( "," expression )* ;

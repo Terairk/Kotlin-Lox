@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
+    implementation(kotlin("stdlib"))
 }
 
 tasks.test {
@@ -19,3 +20,10 @@ tasks.test {
 kotlin {
     jvmToolchain(21)
 }
+
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "org.terairk.lox.LoxKt"
+    }
+}
+

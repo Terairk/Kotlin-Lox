@@ -1,0 +1,6 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="Lox:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Lox_jar</output-path>
+    <root id="archive" name="Lox.jar" />
+  </artifact>
+</component>
