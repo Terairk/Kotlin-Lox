@@ -35,6 +35,8 @@ class Parser(val tokens: List<Token>) {
             if (expr is Expr.Variable) {
                 val name = expr.name
                 return Expr.Assign(name, value)
+            } else if (expr is Expr.Get) {
+                return Expr.Set(expr.instance, expr.name, value)
             }
 
             error(equals, "Invalid assignment target.")
@@ -69,6 +71,7 @@ class Parser(val tokens: List<Token>) {
         try {
             if (match(VAR)) return varDeclaration()
             if (match(FUN)) return function("function")
+            if (match(CLASS)) return classDeclaration()
 
             return statement()
         } catch (error: ParseError) {
@@ -86,6 +89,19 @@ class Parser(val tokens: List<Token>) {
         if (match(LEFT_BRACE)) return Stmt.Block(block())
 
         return expressionStatement()
+    }
+
+    private fun classDeclaration(): Stmt {
+        val name = consume(IDENTIFIER, "Expect class name.")
+        consume(LEFT_BRACE, "Expect '{' before class body.")
+        val methods: MutableList<Stmt.Function> = mutableListOf()
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            methods.add(function("method"))
+        }
+
+        consume(RIGHT_BRACE, "Expect '}' after class body.")
+
+        return Stmt.Class(name, methods)
     }
 
     private fun forStatement(): Stmt {
@@ -273,6 +289,9 @@ class Parser(val tokens: List<Token>) {
         while (true) {
             if (match(LEFT_PAREN)) {
                 expr = finishCall(expr)
+            } else if (match(DOT)){
+                val name = consume(IDENTIFIER, "Expect property name after '.'.")
+                expr = Expr.Get(expr, name)
             } else {
                 break
             }
@@ -292,6 +311,7 @@ class Parser(val tokens: List<Token>) {
                 consume(RIGHT_PAREN, "Expect ')' after expression.")
                 Expr.Grouping(expr)
             }
+            match(THIS) -> Expr.This(previous())
             match(IDENTIFIER) -> {
                 Expr.Variable(previous())
             }

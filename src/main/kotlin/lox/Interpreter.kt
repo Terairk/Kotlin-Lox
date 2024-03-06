@@ -142,13 +142,37 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
                 "Can only call functions and classes.")
         }
 
-        val function: LoxCallable = (callee as LoxCallable)
+        val function: LoxCallable = callee
 
         if (arguments.size != function.arity()) {
             throw RuntimeError(expr.paren,
                 "Expected ${function.arity()} arguments but got ${arguments.size}.")
         }
         return function.call(this, arguments)
+    }
+
+    override fun visitGetExpr(expr: Expr.Get): Any? {
+        val instance = evaluate(expr.instance)
+        if (instance is LoxInstance) {
+            return instance[expr.name]
+        }
+
+        throw RuntimeError(expr.name, "Only instances have properties.")
+    }
+
+    override fun visitSetExpr(expr: Expr.Set): Any? {
+        val instance = evaluate(expr.instance)
+        if (instance !is LoxInstance) {
+            throw RuntimeError(expr.name, "Only instances have fields.")
+        }
+
+        val value = evaluate(expr.value)
+        instance[expr.name] = value
+        return value
+    }
+
+    override fun visitThisExpr(expr: Expr.This): Any? {
+        return lookUpVariable(expr.keyword, expr)
     }
 
     override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
@@ -171,6 +195,20 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         executeBlock(stmt.statements, Environment(environment))
     }
 
+    // this two stage binding process allows references to the class inside its own methods
+    override fun visitClassStmt(stmt: Stmt.Class) {
+        environment.define(stmt.name.lexeme, null)
+
+        val methods = HashMap<String, LoxFunction>()
+        for (method in stmt.methods) {
+            val function = LoxFunction(method, environment, method.name.lexeme == "init")
+            methods[method.name.lexeme] = function
+        }
+
+        val klass: LoxClass = LoxClass(stmt.name.lexeme, methods)
+        environment.assign(stmt.name, klass)
+    }
+
     fun executeBlock(
         statements: List<Stmt>,
         environment: Environment,
@@ -191,7 +229,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     }
 
     override fun visitFunctionStmt(stmt: Stmt.Function) {
-        val function = LoxFunction(stmt, environment)
+        val function = LoxFunction(stmt, environment, false)
         environment.define(stmt.name.lexeme, function)
     }
 

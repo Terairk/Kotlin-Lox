@@ -7,6 +7,9 @@ abstract class Expr {
     fun visitAssignExpr(expr: Assign): T
     fun visitBinaryExpr(expr: Binary): T
     fun visitCallExpr(expr: Call): T
+    fun visitGetExpr(expr: Get): T
+    fun visitSetExpr(expr: Set): T
+    fun visitThisExpr(expr: This): T
     fun visitGroupingExpr(expr: Grouping): T
     fun visitLiteralExpr(expr: Literal): T
     fun visitLogicalExpr(expr: Logical): T
@@ -26,6 +29,21 @@ abstract class Expr {
   class Call (val callee: Expr, val paren: Token, val arguments: List<Expr>): Expr() {
     override fun <T> accept(visitor: Visitor<T>): T {
       return visitor.visitCallExpr(this)
+    }
+  }
+  class Get (val instance: Expr, val name: Token): Expr() {
+    override fun <T> accept(visitor: Visitor<T>): T {
+      return visitor.visitGetExpr(this)
+    }
+  }
+  class Set (val instance: Expr, val name: Token, val value: Expr): Expr() {
+    override fun <T> accept(visitor: Visitor<T>): T {
+      return visitor.visitSetExpr(this)
+    }
+  }
+  class This (val keyword: Token): Expr() {
+    override fun <T> accept(visitor: Visitor<T>): T {
+      return visitor.visitThisExpr(this)
     }
   }
   class Grouping (val expression: Expr): Expr() {

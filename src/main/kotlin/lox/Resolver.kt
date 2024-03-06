@@ -6,10 +6,31 @@ class Resolver(private val interpreter: Interpreter): Expr.Visitor<Unit>, Stmt.V
 
     private val scopes = ArrayDeque<MutableMap<String, Boolean>>()
     private var currentFunction = FunctionType.NONE
+    private var currentClass = ClassType.NONE
     override fun visitBlockStmt(stmt: Stmt.Block) {
         beginScope();
         resolve(stmt.statements);
         endScope();
+    }
+
+    override fun visitClassStmt(stmt: Stmt.Class) {
+        val enclosingClass = currentClass
+        currentClass = ClassType.CLASS
+        declare(stmt.name)
+        define(stmt.name)
+
+        beginScope()
+        scopes.last()["this"] = true
+        for (method in stmt.methods) {
+            var declaration = FunctionType.METHOD
+            if (method.name.lexeme == "init") {
+                declaration = FunctionType.INITIALIZER
+            }
+            resolveFunction(method, declaration)
+        }
+
+        endScope()
+        currentClass = enclosingClass
     }
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {
@@ -53,6 +74,10 @@ class Resolver(private val interpreter: Interpreter): Expr.Visitor<Unit>, Stmt.V
         }
 
         if (stmt.value != null) {
+            if (currentFunction == FunctionType.INITIALIZER) {
+                error(stmt.keyword,"Can't return a value from an initializer.")
+            }
+
             resolve(stmt.value)
         }
     }
@@ -72,6 +97,23 @@ class Resolver(private val interpreter: Interpreter): Expr.Visitor<Unit>, Stmt.V
         for (argument in expr.arguments) {
             resolve(argument)
         }
+    }
+
+    override fun visitGetExpr(expr: Expr.Get) {
+        resolve(expr.instance)
+    }
+
+    override fun visitSetExpr(expr: Expr.Set) {
+        resolve(expr.value)
+        resolve(expr.instance)
+    }
+
+    override fun visitThisExpr(expr: Expr.This) {
+        if (currentClass == ClassType.NONE) {
+            error(expr.keyword, "Can't use 'this' outside of a class.")
+        }
+
+        resolveLocal(expr, expr.keyword)
     }
 
     override fun visitGroupingExpr(expr: Expr.Grouping) {
@@ -160,5 +202,9 @@ class Resolver(private val interpreter: Interpreter): Expr.Visitor<Unit>, Stmt.V
 }
 
 private enum class FunctionType {
-    NONE, FUNCTION
+    NONE, FUNCTION, INITIALIZER, METHOD
+}
+
+private enum class ClassType {
+    NONE, CLASS
 }
