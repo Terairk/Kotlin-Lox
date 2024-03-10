@@ -1,7 +1,7 @@
 package org.terairk.lox
 
 // we have a parent-pointer tree!
-class Environment(private val enclosing: Environment? = null) {
+class Environment(val enclosing: Environment? = null) {
     private val values = HashMap<String, Any?>()
 
     fun define(

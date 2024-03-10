@@ -1,0 +1,8 @@
+// single pass, can't do times2 here
+
+fun times2(n) {
+    return n * 2;
+}
+
+print times2(4);
+

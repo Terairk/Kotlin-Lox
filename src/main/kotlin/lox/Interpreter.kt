@@ -175,6 +175,22 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         return lookUpVariable(expr.keyword, expr)
     }
 
+    override fun visitSuperExpr(expr: Expr.Super): Any? {
+        val distance = locals[expr]
+
+        if (distance != null) {
+            val superclass = environment.getAt(distance, "super") as LoxClass
+            val instance = environment.getAt(distance - 1, "this") as LoxInstance
+            val method = superclass.findMethod(expr.method.lexeme)
+                ?: throw RuntimeError(expr.method, "Undefined property '${expr.method.lexeme}.")
+
+            return method.bind(instance)
+        }
+
+        // shouldn't get here
+        return null
+    }
+
     override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
         return evaluate(expr.expression)
     }
@@ -197,7 +213,19 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
 
     // this two stage binding process allows references to the class inside its own methods
     override fun visitClassStmt(stmt: Stmt.Class) {
+        var superclass: Any? = null
+        if (stmt.superclass != null) {
+            superclass = evaluate(stmt.superclass)
+            if (superclass !is LoxClass) {
+                throw RuntimeError(stmt.superclass.name, "Superclass must be a class.")
+            }
+        }
         environment.define(stmt.name.lexeme, null)
+
+        if (stmt.superclass != null) {
+            environment = Environment(environment)
+            environment.define("super", superclass)
+        }
 
         val methods = HashMap<String, LoxFunction>()
         for (method in stmt.methods) {
@@ -205,7 +233,10 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
             methods[method.name.lexeme] = function
         }
 
-        val klass: LoxClass = LoxClass(stmt.name.lexeme, methods)
+        val klass = LoxClass(stmt.name.lexeme, superclass as LoxClass?, methods)
+        if (superclass != null) {
+            environment = environment.enclosing!!
+        }
         environment.assign(stmt.name, klass)
     }
 

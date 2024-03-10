@@ -10,6 +10,7 @@ abstract class Expr {
     fun visitGetExpr(expr: Get): T
     fun visitSetExpr(expr: Set): T
     fun visitThisExpr(expr: This): T
+    fun visitSuperExpr(expr: Super): T
     fun visitGroupingExpr(expr: Grouping): T
     fun visitLiteralExpr(expr: Literal): T
     fun visitLogicalExpr(expr: Logical): T
@@ -44,6 +45,11 @@ abstract class Expr {
   class This (val keyword: Token): Expr() {
     override fun <T> accept(visitor: Visitor<T>): T {
       return visitor.visitThisExpr(this)
+    }
+  }
+  class Super (val keyword: Token, val method: Token): Expr() {
+    override fun <T> accept(visitor: Visitor<T>): T {
+      return visitor.visitSuperExpr(this)
     }
   }
   class Grouping (val expression: Expr): Expr() {

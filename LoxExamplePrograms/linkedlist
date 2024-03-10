@@ -1,0 +1,21 @@
+class LinkedList {
+    init(newData, newNext) {
+        this.data = newData;
+        this.next = newNext;
+    }
+
+    getData() {
+        return this.data;
+    }
+}
+
+var node1 = LinkedList(5, 10);
+var node2 = LinkedList(3, node1);
+var node3 = LinkedList(8, nil);
+node1.next = node3;
+
+var point = node2;
+while (point) {
+    print point.getData();
+    point = point.next;
+}

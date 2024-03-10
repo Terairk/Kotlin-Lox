@@ -8,3 +8,5 @@ var a = "global";
   var a = "block";
   showA();
 }
+
+

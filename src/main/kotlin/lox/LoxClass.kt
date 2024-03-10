@@ -1,6 +1,6 @@
 package org.terairk.lox
 
-class LoxClass(val name: String, val methods: MutableMap<String, LoxFunction>): LoxCallable {
+class LoxClass(val name: String, val superclass: LoxClass?, val methods: MutableMap<String, LoxFunction>): LoxCallable {
 
     override fun arity(): Int {
         val initializer = findMethod("init")
@@ -21,6 +21,10 @@ class LoxClass(val name: String, val methods: MutableMap<String, LoxFunction>): 
     fun findMethod(name: String): LoxFunction? {
         if (name in methods.keys) {
             return methods[name]
+        }
+
+        if (superclass != null) {
+            return superclass.findMethod(name)
         }
 
         return null
